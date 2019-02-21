@@ -32,7 +32,7 @@ DPLL(S){
 ## Convert sudoku game into SAT problem
 
 We first create a sudoku game like this
-![sudoku](SAT-based-sudoku-solution/sudoku.png)
+![sudoku](https://github.com/JinpengLiu981113/SAT-based-sudoku-solution/blob/master/sudoku.png)
 
 Then we tanslate the sudoku game into SAT in this way
 
