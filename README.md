@@ -31,11 +31,11 @@ DPLL(S){
 
 ## Convert sudoku game into SAT problem
 
-We first create a sudoku game like this
+1.We first create a sudoku game like this
 
 ![sudoku](https://github.com/JinpengLiu981113/SAT-based-sudoku-solution/blob/master/sudoku.png)
 
-Then we tanslate the sudoku game into SAT in this way
+2.Then we tanslate the sudoku game into SAT in this way
 
 ```c
 /* 数独中已填入的值 */
@@ -182,4 +182,4 @@ Then we tanslate the sudoku game into SAT in this way
     }
 ```
 
-After we convert the sudoku game into SAT, we are able to solve it using DPLL algorithm
+3.After we convert the sudoku game into SAT, we are able to solve it using DPLL algorithm
