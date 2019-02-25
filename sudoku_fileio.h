@@ -6,6 +6,7 @@
 
 #endif //ASSIGNMENT_PROJECTS_SUDOKU_FILEIO_H
 
+/* 将数独转化成的SAT存入.cnf文件 */
 void tocnf(FILE *outFile, CLAUSE *clauseHead, int **sudoku) {
     fprintf(outFile, "c sudoku \n");
     fprintf(outFile, "c \n");
