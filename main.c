@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "modules.c"
 
 int main(void) {
@@ -7,6 +8,7 @@ int main(void) {
     do {
         printf("Sudoku or SAT?(1 for Sudoku, 2 for SAT, 3 to quit)\n");
         scanf("%d", &mode);
+        getchar();
         if (mode != 1 && mode != 2 && mode != 3)
             continue;
         else if (mode == 1)
@@ -15,12 +17,6 @@ int main(void) {
             solveForSAT();
     } while (mode != 3);
     printf("Program Quiting");
-
-    /* 测试sat */
-//    solveForSAT();
-
-    /* 测试数独 */
-//    sudokuGame();
 
     return 0;
 }
