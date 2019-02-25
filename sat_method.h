@@ -6,6 +6,7 @@
 
 #endif //ASSIGNMENT_PROJECTS_FUNCTION_DEFINITION_H
 
+/* 将.cnf文件中的子句和文字用链表的形式存储 */
 void createList(FILE *infile, int clauses, CLAUSES *clausesCurr) {
     int number = 0, notes = 0, characterIndex = 0, clauseIndex = 0;
     for (int num = 0; num < clauses; num++) {
@@ -27,6 +28,7 @@ void createList(FILE *infile, int clauses, CLAUSES *clausesCurr) {
     }
 }
 
+/* 在屏幕上输出这个链表 */
 void printScreen(const CLAUSES *clausesHead) {
     CLAUSES *clacurr = clausesHead->next;
     while (clacurr != NULL) {
@@ -41,26 +43,47 @@ void printScreen(const CLAUSES *clausesHead) {
     }
 }
 
-bool hasSingleClause(const CLAUSES *clausesHead) {
-    CLAUSES *clacurr = clausesHead->next;
-    bool hasSingleClause = false;
-    while (clacurr != NULL) {
-        if (isUnitClause(clacurr))
-            hasSingleClause = true;
-        clacurr = clacurr->next;
-    }
-    return hasSingleClause;
-}
-
+/* 加入假设层 */
 void addAssumptionLayer(CLAUSES *clausesHead) {
     CLAUSES *clausesCurr = clausesHead, *clausesTemp = clausesHead->next;
     addClause(clausesCurr, 0);
     clausesCurr = clausesCurr->next;
+    clausesCurr->enable = false;
     CHARACTERS *charactersHead = createCharacter();
     linkCharacters(clausesCurr, charactersHead, 0);
     clausesCurr->next = clausesTemp;
 }
 
+/* 删除假设层的文字 */
+void deleteTheWord(CLAUSES *clausesHead) {
+    CHARACTERS *charactersCurr = clausesHead->next->head;
+    free(charactersCurr->next);
+    charactersCurr->next = NULL;
+}
+
+/* 选择一个文字，以让其成为单子句 */
+int getLiteral(CLAUSES *clausesHead) {
+    CLAUSES *clausesCurr = clausesHead->next->next;
+    int number = 0;
+    while (clausesCurr != NULL) {
+        if (clausesCurr->enable == true) {
+            CHARACTERS *charactersCurr = clausesCurr->head->next;
+            while (charactersCurr != NULL) {
+                if (charactersCurr->enable == true) {
+                    number = charactersCurr->number;
+                    break;
+                }
+                charactersCurr = charactersCurr->next;
+            }
+        }
+        if(number != 0)
+            break;
+        clausesCurr = clausesCurr->next;
+    }
+    return number;
+}
+
+/* 把已选择的文字变成一个单子句 */
 void chooseAWord(CLAUSES *clausesHead, int keyword) {
     CLAUSES *clacurr = clausesHead->next;
     CHARACTERS *charactersCurr = clacurr->head;
@@ -69,14 +92,16 @@ void chooseAWord(CLAUSES *clausesHead, int keyword) {
     clacurr->length = 1;
 }
 
+/* 把刚才选择的单子句取反 */
 void reverseTheWord(CLAUSES *clausesHead, int keyword) {
     CLAUSES *clacurr = clausesHead->next;
     CHARACTERS *charactersCurr = clacurr->head->next;
-    charactersCurr->initialIndex = 1;
+//    charactersCurr->initialIndex = 1;
     charactersCurr->number = -keyword;
     clacurr->enable = true;
 }
 
+/* 恢复对链表的改变 */
 void recoverChanges(CLAUSES *clausesHead, CHANGELOG *changelogHead) {
     CHANGELOG *changelogCurr = changelogHead->next;
     while (changelogCurr != NULL) {
@@ -98,6 +123,7 @@ void recoverChanges(CLAUSES *clausesHead, CHANGELOG *changelogHead) {
     }
 }
 
+/* 判断是否所有的句子都被去除了，(S为空集) */
 bool allDisabled(CLAUSES *clausesHead) {
     CLAUSES *clausesCurr = clausesHead->next;
     while (clausesCurr != NULL) {
@@ -108,28 +134,19 @@ bool allDisabled(CLAUSES *clausesHead) {
     return true;
 }
 
-void deleteTheWord(CLAUSES *clausesHead) {
-    CHARACTERS *charactersCurr = clausesHead->next->head;
-    free(charactersCurr->next);
-    charactersCurr->next = NULL;
-}
-
-int getLiteral(CLAUSES *clausesHead) {
-    CLAUSES *clausesCurr = clausesHead->next;
-    while (clausesCurr != NULL) {
-        if (clausesCurr->enable == true) {
-            CHARACTERS *charactersCurr = clausesCurr->head->next;
-            while (charactersCurr != NULL) {
-                if (charactersCurr->enable == true) {
-                    return charactersCurr->number;
-                }
-                charactersCurr = charactersCurr->next;
-            }
-        }
-        clausesCurr = clausesCurr->next;
+/* 链表中有单子句 */
+bool hasSingleClause(const CLAUSES *clausesHead) {
+    CLAUSES *clacurr = clausesHead->next;
+    bool hasSingleClause = false;
+    while (clacurr != NULL) {
+        if (isUnitClause(clacurr))
+            hasSingleClause = true;
+        clacurr = clacurr->next;
     }
+    return hasSingleClause;
 }
 
+/* 找到单子句对应的文字 */
 int getSingleLiteral(CLAUSES *clausesHead) {
     CLAUSES *clacurr = clausesHead->next;
     int number = 0;
@@ -148,11 +165,14 @@ int getSingleLiteral(CLAUSES *clausesHead) {
     return number;
 }
 
+/* DPLL算法 */
 bool DPLL(CLAUSES *clausesHead, STATUSCODE *statusCodeHead) {
     CHANGELOG *changelogHead = createChangeLog(), *changelogCurr = changelogHead;
     while (hasSingleClause(clausesHead)) {
         int singleWord = 0;
         singleWord = getSingleLiteral(clausesHead);
+//        printf("%d\n", singleWord);
+//        printScreen(clausesHead);
         addStatusCode(statusCodeHead, singleWord);
         CLAUSES *clacurr = clausesHead->next;
         while (clacurr != NULL) {
@@ -173,8 +193,8 @@ bool DPLL(CLAUSES *clausesHead, STATUSCODE *statusCodeHead) {
                                 chacurr = chacurr->next;
                             }
                         } else if (chacurr->number == -singleWord) {
-                            addChangelog(changelogCurr, clacurr->initialIndex, chacurr->initialIndex);
                             disableCharacter(chacurr);
+                            addChangelog(changelogCurr, clacurr->initialIndex, chacurr->initialIndex);
                             changelogCurr = changelogCurr->next;
                             clacurr->length--;
                             chacurr = chacurr->next;
@@ -189,6 +209,9 @@ bool DPLL(CLAUSES *clausesHead, STATUSCODE *statusCodeHead) {
             clacurr = clacurr->next;
         }
         if (allDisabled(clausesHead)) {
+            /**/
+            recoverChanges(clausesHead, changelogHead);
+            /**/
             destroyChangelog(changelogHead);
             return true;
         }
@@ -209,12 +232,18 @@ bool DPLL(CLAUSES *clausesHead, STATUSCODE *statusCodeHead) {
     bool satisfiable;
     satisfiable = DPLL(clausesHead, statusCodeHead);
     if (satisfiable) {
+        /**/
+        recoverChanges(clausesHead, changelogHead);
+        /**/
         destroyChangelog(changelogHead);
         return true;
     }
     reverseTheWord(clausesHead, literal);
     satisfiable = DPLL(clausesHead, statusCodeHead);
     if (satisfiable) {
+        /**/
+        recoverChanges(clausesHead, changelogHead);
+        /**/
         destroyChangelog(changelogHead);
         return true;
     } else {
