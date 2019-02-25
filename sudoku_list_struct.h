@@ -68,3 +68,44 @@ void linkSudokuCharacters(CLAUSE *clauseCurr, CHARACTER *characterHead, int leng
     clauseCurr->right = characterHead;
     clauseCurr->length = length;
 }
+
+typedef struct sudokuchangelog {
+    int index;
+    int length;
+    struct sudokuchangelog *next;
+} SUDOKUCHANGELOG;
+
+SUDOKUCHANGELOG *createSudokuChangelog() {
+    SUDOKUCHANGELOG *sudokuchangelogNew = (SUDOKUCHANGELOG *) malloc(sizeof(SUDOKUCHANGELOG));
+    sudokuchangelogNew->next = NULL;
+    return sudokuchangelogNew;
+}
+
+void addSudokuChangelog(SUDOKUCHANGELOG *sudokuchangelogCurr, int index, int length) {
+    /* 加入一个子句，指针向后移动到下一个子句 */
+    SUDOKUCHANGELOG *sudokuchangelogNew = (SUDOKUCHANGELOG *) malloc(sizeof(SUDOKUCHANGELOG));
+    sudokuchangelogNew->next = NULL;
+    sudokuchangelogNew->index = index;
+    sudokuchangelogNew->length = length;
+    sudokuchangelogCurr->next = sudokuchangelogNew;
+}
+
+void destroySudokuChangelog(SUDOKUCHANGELOG *sudokuchangelogHead) {
+    /* 删除所有子句 */
+    SUDOKUCHANGELOG *sudokuchangelogCurr = sudokuchangelogHead, *sudokuchangelogTemp;
+    while (sudokuchangelogCurr != NULL) {
+        sudokuchangelogTemp = sudokuchangelogCurr->next;
+        free(sudokuchangelogCurr);
+        sudokuchangelogCurr = sudokuchangelogTemp;
+    }
+}
+
+void deleteLastone(SUDOKUCHANGELOG *sudokuchangelogHead) {
+    SUDOKUCHANGELOG *sudokuchangelogCurr = sudokuchangelogHead->next, *sudokuchangelogTemp = sudokuchangelogHead;
+    while (sudokuchangelogCurr->next != NULL) {
+        sudokuchangelogCurr = sudokuchangelogCurr->next;
+        sudokuchangelogTemp = sudokuchangelogTemp->next;
+    }
+    free(sudokuchangelogCurr);
+    sudokuchangelogTemp->next = NULL;
+}
