@@ -6,9 +6,8 @@
 
 #endif //ASSIGNMENT_PROJECTS_FILEIO_H
 
+/* .cnf与.res文件名处理 */
 void dealWithFileName(char *fileName, char *outFileName) {
-    /* .cnf与.res文件名处理 */
-    getchar();
     printf("Please enter a file: \n");
     fgets(fileName, 100, stdin);
     char suffix[4] = ".res";
@@ -39,7 +38,7 @@ void getMetrics(FILE *infile, int *clauses, int *characters) {
     }
 }
 
-void satOutFile(FILE *outfile, STATUSCODE *statusCodeHead, bool satisfiable, clock_t time, int characters) {
+void satOutFile(FILE *outfile, STATUSCODE *statusCodeHead, bool satisfiable, clock_t time) {
     /* 输出信息到.cnf文件 */
     if (satisfiable) {
         STATUSCODE *statusCodeCurr = statusCodeHead->next;
