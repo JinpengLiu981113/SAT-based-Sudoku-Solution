@@ -24,13 +24,13 @@ void solveForSAT() {
     }
     int clauses = 0, characters = 0;
     CLAUSES *clausesHead = createClause(), *clausesCurr = clausesHead;
-    STATUSCODE *statusCodeHead = createStatusCode(), *statusCodeCurr = statusCodeHead;
-    STATUSCODE *newHead = createStatusCode();
+    STATUSCODE *statusCodeHead = createStatusCode();
+    STATUSCODE *newHead;
     getMetrics(infile, &clauses, &characters);
 
     /* 处理文件, 提取其中的文字 */
     createList(infile, clauses, clausesCurr);
-    fclose(infile); // 关闭文件
+    fclose(infile);
     free(fileName);
 
     /* 输出链表 */
@@ -39,7 +39,7 @@ void solveForSAT() {
 
     /* DPLL算法 */
     bool satisfiable;
-    satisfiable = DPLL(clausesHead, statusCodeCurr);
+    satisfiable = DPLL(clausesHead, statusCodeHead);
     printf("%d\n", satisfiable);
     newHead = sortStatusCode(statusCodeHead);
 
@@ -50,7 +50,8 @@ void solveForSAT() {
     /* 记录时间，计算所用时间，将sat结果写入.res文件 */
     FILE *outfile = fopen(outFileName, "w");
     clock_t t1 = clock();
-    satOutFile(outfile, newHead, satisfiable, t1 - t0, characters);
+    satOutFile(outfile, newHead, satisfiable, t1 - t0);
+    fclose(outfile);
     free(outFileName);
     destroyStatusCode(newHead);
 
@@ -61,24 +62,13 @@ void solveForSAT() {
 
 void sudokuGame() {
     /* 记录时间 */
-//    clock_t t0 = clock();
+    clock_t t0 = clock();
 
     /* 生成数独 */
-    int *sudokuArray = (int *) malloc(9 * sizeof(int));
+    int *sudokuArray;
     int **sudoku;
-    int **sudokuCheck = (int **)malloc(81*sizeof(int));
-    int *sudokuCheckArray[9];
-    for(int i=0;i<9;i++){
-        sudokuCheckArray[i] = (int *)malloc(9*sizeof(int));
-    }
     sudokuArray = shuffleSudokuArray();
     sudoku = createSudoku(sudokuArray);
-    for(int i=0;i<9;i++){
-        for(int j=0;j<9;j++){
-            sudokuCheckArray[i][j] = sudoku[i][j];
-        }
-    }
-    sudokuCheck = sudokuCheckArray;
     free(sudokuArray);
     generateSudokuGame(sudoku);
     printSudoku(sudoku);
@@ -92,24 +82,35 @@ void sudokuGame() {
     FILE *outFile = fopen(outSudokuFileName, "w");
     tocnf(outFile, clauseHead, sudoku);
     fclose(outFile);
+    destroySudokuClauses(clauseHead);
 
+    /* 读入sudoku.cnf文件，生成链表 */
+    FILE *infile = fopen(outSudokuFileName, "r");
+    CLAUSES *clausesHead = createClause(), *clausesCurr = clausesHead;
+    int clauses = 0, characters = 0;
+    getMetrics(infile, &clauses, &characters);
+    createList(infile, clauses, clausesCurr);
+    addAssumptionLayer(clausesHead);
+    fclose(infile);
+
+    /* 选择游戏模式 */
     int choice = 0;
-    printf("Play or auto_solve?(1 to play, 2 to auto_solve)\n");
+    printf("Play or auto_solve?(1 to play, 2 to auto_solve, 3 to quit)\n");
     scanf("%d", &choice);
     getchar();
     if(choice == 1){
         /* 用户自行求解 */
-        solveSudoku(sudoku, sudokuCheck);
+        solveSudoku(sudoku, clausesHead);
     }
     else if(choice == 2){
         /* 用DPLL求解数独 */
-        solveSudokuWithDPLL(outSudokuFileName, sudoku);
+        solveSudokuWithDPLL(sudoku, clausesHead);
         printSudoku(sudoku);
     }
+    destroyClauses(clausesHead);
     free(sudoku);
-    destroySudokuClauses(clauseHead);
 
     /* 记录时间，计算所用时间 */
-//    clock_t t1 = clock();
-//    printf("\n%5ld", t1 - t0);
+    clock_t t1 = clock();
+    printf("Time used this turn: %5ld\n", t1 - t0);
 }
